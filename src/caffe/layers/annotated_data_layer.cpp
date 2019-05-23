@@ -28,16 +28,18 @@ AnnotatedDataLayer<Dtype>::~AnnotatedDataLayer() {
 template <typename Dtype>
 void AnnotatedDataLayer<Dtype>::DataLayerSetUp(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+  
   const int batch_size = this->layer_param_.data_param().batch_size();
-  const AnnotatedDataParameter& anno_data_param =
-      this->layer_param_.annotated_data_param();
+  const AnnotatedDataParameter& anno_data_param =this->layer_param_.annotated_data_param();
+
   for (int i = 0; i < anno_data_param.batch_sampler_size(); ++i) {
     batch_samplers_.push_back(anno_data_param.batch_sampler(i));
   }
+  
   label_map_file_ = anno_data_param.label_map_file();
   // Make sure dimension is consistent within batch.
-  const TransformationParameter& transform_param =
-    this->layer_param_.transform_param();
+  const TransformationParameter& transform_param =this->layer_param_.transform_param();
+  
   if (transform_param.has_resize_param()) {
     if (transform_param.resize_param().resize_mode() ==
         ResizeParameter_Resize_mode_FIT_SMALL_SIZE) {
