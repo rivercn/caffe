@@ -4,6 +4,8 @@ Before running this script, you should download the fully convolutional reduced 
 By default, we assume the model is stored in `$CAFFE_ROOT/models/ZFNet/`
 '''
 from __future__ import print_function
+import sys
+sys.path.insert(0,"/home/positec/Git/caffe/python")
 import caffe
 from caffe.model_libs import *
 from google.protobuf import text_format
@@ -13,7 +15,6 @@ import os
 import shutil
 import stat
 import subprocess
-import sys
 
 # Add extra layers on top of a "base" network (e.g. VGGNet or Inception).
 def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
