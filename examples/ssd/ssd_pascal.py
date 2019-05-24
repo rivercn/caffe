@@ -69,7 +69,7 @@ def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
 ### Modify the following parameters accordingly ###
 # The directory which contains the caffe code.
 # We assume you are running the script at the CAFFE_ROOT.
-caffe_root = os.getcwd()
+caffe_root = os.getcwd()        #返回当前工作目录 current work directory
 
 # Set true if you want to start training right after generating all files.
 run_soon = True
