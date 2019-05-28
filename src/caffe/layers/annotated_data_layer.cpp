@@ -28,21 +28,23 @@ AnnotatedDataLayer<Dtype>::~AnnotatedDataLayer() {
 template <typename Dtype>
 void AnnotatedDataLayer<Dtype>::DataLayerSetUp(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
-  const int batch_size = this->layer_param_.data_param().batch_size();
-  const AnnotatedDataParameter& anno_data_param =
-      this->layer_param_.annotated_data_param();
+  
+  const int batch_size = this->layer_param_.data_param().batch_size();  //读取数据batch size
+  const AnnotatedDataParameter& anno_data_param =this->layer_param_.annotated_data_param(); //读取caffe.proto 配置参数 200
+
+  //读取所有数据参数信息
   for (int i = 0; i < anno_data_param.batch_sampler_size(); ++i) {
     batch_samplers_.push_back(anno_data_param.batch_sampler(i));
   }
+  
   label_map_file_ = anno_data_param.label_map_file();
   // Make sure dimension is consistent within batch.
-  const TransformationParameter& transform_param =
-    this->layer_param_.transform_param();
+  const TransformationParameter& transform_param =this->layer_param_.transform_param();
+  
   if (transform_param.has_resize_param()) {
-    if (transform_param.resize_param().resize_mode() ==
-        ResizeParameter_Resize_mode_FIT_SMALL_SIZE) {
+    if (transform_param.resize_param().resize_mode() == ResizeParameter_Resize_mode_FIT_SMALL_SIZE) {
       CHECK_EQ(batch_size, 1)
-        << "Only support batch size of 1 for FIT_SMALL_SIZE.";
+        << "Only support batch size of 1 for FIT_SMALL_SIZE.";  //确认是否相等
     }
   }
 
@@ -50,18 +52,20 @@ void AnnotatedDataLayer<Dtype>::DataLayerSetUp(
   AnnotatedDatum& anno_datum = *(reader_.full().peek());
 
   // Use data_transformer to infer the expected blob shape from anno_datum.
-  vector<int> top_shape =
-      this->data_transformer_->InferBlobShape(anno_datum.datum());
+  vector<int> top_shape = this->data_transformer_->InferBlobShape(anno_datum.datum());
   this->transformed_data_.Reshape(top_shape);
+
   // Reshape top[0] and prefetch_data according to the batch_size.
   top_shape[0] = batch_size;
   top[0]->Reshape(top_shape);
+
   for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
     this->prefetch_[i].data_.Reshape(top_shape);
   }
   LOG(INFO) << "output data size: " << top[0]->num() << ","
       << top[0]->channels() << "," << top[0]->height() << ","
       << top[0]->width();
+
   // label
   if (this->output_labels_) {
     has_anno_type_ = anno_datum.has_type() || anno_data_param.has_anno_type();
@@ -94,13 +98,16 @@ void AnnotatedDataLayer<Dtype>::DataLayerSetUp(
         // sure there is at least one bbox.
         label_shape[2] = std::max(num_bboxes, 1);
         label_shape[3] = 8;
-      } else {
+      } 
+      else {
         LOG(FATAL) << "Unknown annotation type.";
       }
-    } else {
+    } 
+    else {
       label_shape[0] = batch_size;
     }
     top[1]->Reshape(label_shape);
+
     for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
       this->prefetch_[i].label_.Reshape(label_shape);
     }
@@ -152,6 +159,7 @@ void AnnotatedDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
     timer.Start();
     AnnotatedDatum distort_datum;
     AnnotatedDatum* expand_datum = NULL;
+
     if (transform_param.has_distort_param()) {
       distort_datum.CopyFrom(anno_datum);
       this->data_transformer_->DistortImage(anno_datum.datum(),
@@ -162,7 +170,8 @@ void AnnotatedDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
       } else {
         expand_datum = &distort_datum;
       }
-    } else {
+    } 
+    else {
       if (transform_param.has_expand_param()) {
         expand_datum = new AnnotatedDatum();
         this->data_transformer_->ExpandImage(anno_datum, expand_datum);
@@ -192,8 +201,8 @@ void AnnotatedDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
     }
     CHECK(sampled_datum != NULL);
     timer.Start();
-    vector<int> shape =
-        this->data_transformer_->InferBlobShape(sampled_datum->datum());
+    vector<int> shape = this->data_transformer_->InferBlobShape(sampled_datum->datum());
+
     if (transform_param.has_resize_param()) {
       if (transform_param.resize_param().resize_mode() ==
           ResizeParameter_Resize_mode_FIT_SMALL_SIZE) {
@@ -204,7 +213,8 @@ void AnnotatedDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
         CHECK(std::equal(top_shape.begin() + 1, top_shape.begin() + 4,
               shape.begin() + 1));
       }
-    } else {
+    } 
+    else {
       CHECK(std::equal(top_shape.begin() + 1, top_shape.begin() + 4,
             shape.begin() + 1));
     }
